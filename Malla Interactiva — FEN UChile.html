@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malla Interactiva — FEN UChile</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#F5F4F0; --surface:#FFFFFF; --surface2:#EFEFEB; --border:#DDDBD4; --border2:#C9C6BC;
+    --text:#1A1916; --text2:#6B6860; --text3:#9E9B93;
+    --red:#C0392B; --red-bg:#FDF0EF; --red-b:#f3c5c0; --green:#1D7A52;
+    --header-bg:#1A1916; --overlay:rgba(15,14,12,0.45);
+
+    --c-econ-bg:#C8DFFB;  --c-econ-b:#2E7DC4;  --c-econ-t:#0B2E52;
+    --c-adm-bg:#FAD0BE;   --c-adm-b:#C94D1E;   --c-adm-t:#4A1B0C;
+    --c-quant-bg:#B8EDD8; --c-quant-b:#1A9068; --c-quant-t:#063425;
+    --c-lang-bg:#FDE5A8;  --c-lang-b:#C08010;  --c-lang-t:#3D2700;
+    --c-elec-bg:#D4EDAA;  --c-elec-b:#5E9820;  --c-elec-t:#1A3400;
+    --c-ti-bg:#D8D5FB;    --c-ti-b:#4C44B8;    --c-ti-t:#1A166A;
+    --c-social-bg:#FAC8D8;--c-social-b:#9B2D52;--c-social-t:#3D0A1E;
+  }
+  [data-theme="dark"] {
+    --bg:#121211; --surface:#1C1C1A; --surface2:#262624; --border:#36352F; --border2:#4A4840;
+    --text:#ECEAE3; --text2:#A8A59B; --text3:#77746B;
+    --red:#FF8A7A; --red-bg:#3A1D1A; --red-b:#6a342e; --green:#5FD39E;
+    --header-bg:#0A0A09; --overlay:rgba(0,0,0,0.65);
+
+    --c-econ-bg:#1B3A5C;  --c-econ-b:#4A9BE0;  --c-econ-t:#CFE4FB;
+    --c-adm-bg:#4A2314;   --c-adm-b:#E07A4A;   --c-adm-t:#FAD9CB;
+    --c-quant-bg:#0F3D2E; --c-quant-b:#34B88A; --c-quant-t:#C8F3E2;
+    --c-lang-bg:#4A3608;  --c-lang-b:#D9A22B;  --c-lang-t:#FDEBC0;
+    --c-elec-bg:#2A3E10;  --c-elec-b:#8BC34A;  --c-elec-t:#DDF0BD;
+    --c-ti-bg:#26225A;    --c-ti-b:#7F77E0;    --c-ti-t:#E0DEFC;
+    --c-social-bg:#4A1A2D;--c-social-b:#D6618A;--c-social-t:#FBD8E4;
+  }
+
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background .2s,color .2s; }
+
+  header { background:var(--header-bg); color:#fff; padding:20px 28px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .header-title { font-size:20px; font-weight:600; letter-spacing:-0.3px; }
+  .header-sub { font-size:12px; color:#aaa; letter-spacing:.5px; text-transform:uppercase; margin-top:2px; }
+  .header-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .tab-row { display:flex; gap:6px; flex-wrap:wrap; }
+  .tab { padding:6px 16px; font-size:13px; font-family:inherit; border:1.5px solid rgba(255,255,255,.25); border-radius:20px; cursor:pointer; background:transparent; color:rgba(255,255,255,.65); transition:all .15s; font-weight:500; }
+  .tab:hover { background:rgba(255,255,255,.1); color:#fff; }
+  .tab.active { background:#fff; color:#1A1916; border-color:transparent; }
+  .tab .soon { font-size:9px; text-transform:uppercase; letter-spacing:.5px; opacity:.7; margin-left:5px; }
+  .theme-btn { padding:6px 12px; font-size:13px; font-family:inherit; border:1.5px solid rgba(255,255,255,.25); border-radius:20px; cursor:pointer; background:transparent; color:#fff; font-weight:500; }
+  .theme-btn:hover { background:rgba(255,255,255,.1); }
+
+  main { padding:20px 24px; }
+  .stats-bar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .stat { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 18px; text-align:center; min-width:80px; }
+  .stat-n { font-size:22px; font-weight:600; font-family:'DM Mono',monospace; }
+  .stat-l { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; margin-top:1px; }
+
+  .legend { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .leg { display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--text2); background:var(--surface); border:1px solid var(--border); padding:3px 9px; border-radius:20px; }
+  .leg-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+  .hint { font-size:12px; color:var(--text3); margin-bottom:14px; }
+
+  .grid { display:flex; gap:10px; overflow-x:auto; padding-bottom:12px; }
+  .grid::-webkit-scrollbar { height:6px; }
+  .grid::-webkit-scrollbar-track { background:var(--surface2); border-radius:3px; }
+  .grid::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+  .sem-col { flex-shrink:0; width:152px; }
+  .sem-head { font-size:10.5px; font-weight:600; text-align:center; padding:5px 6px; background:var(--surface); border:1px solid var(--border); border-radius:8px; margin-bottom:7px; color:var(--text2); text-transform:uppercase; letter-spacing:.4px; }
+
+  .course { border-radius:8px; padding:7px 9px 6px; margin-bottom:5px; cursor:pointer; border:1.5px solid transparent; transition:transform .12s, box-shadow .12s; position:relative; }
+  .course:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.18); }
+  .cname { font-size:11px; font-weight:500; line-height:1.35; padding-right:14px; }
+  .ccred { font-size:10px; margin-top:3px; opacity:.7; font-family:'DM Mono',monospace; }
+  .course.approved { opacity:.58; }
+  .badge { position:absolute; top:5px; right:6px; width:15px; height:15px; border-radius:50%; background:rgba(128,128,128,.35); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; }
+  .course.locked { background:var(--surface2) !important; border-color:var(--border) !important; }
+  .course.locked .cname, .course.locked .ccred { color:var(--text3) !important; }
+  .lock-icon { position:absolute; top:5px; right:6px; font-size:10px; opacity:.5; }
+
+  .soon-box { max-width:520px; margin:50px auto; text-align:center; background:var(--surface); border:1px dashed var(--border2); border-radius:16px; padding:48px 28px; }
+  .soon-box .big { font-size:32px; font-weight:600; letter-spacing:-0.5px; margin-bottom:10px; }
+  .soon-box p { font-size:14px; color:var(--text2); line-height:1.6; }
+
+  .modal-bg { display:none; position:fixed; inset:0; background:var(--overlay); z-index:200; align-items:center; justify-content:center; backdrop-filter:blur(3px); }
+  .modal-bg.open { display:flex; }
+  .modal { background:var(--surface); border-radius:14px; border:1px solid var(--border); max-width:360px; width:calc(100% - 32px); box-shadow:0 16px 48px rgba(0,0,0,.3); overflow:hidden; }
+  .modal-header { padding:18px 20px 14px; border-bottom:1px solid var(--border); }
+  .modal-header h3 { font-size:15px; font-weight:600; line-height:1.3; }
+  .modal-sem { font-size:12px; color:var(--text3); margin-top:3px; font-family:'DM Mono',monospace; }
+  .modal-body { padding:14px 20px; }
+  .m-row { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid var(--border); }
+  .m-row:last-child { border-bottom:none; }
+  .m-label { color:var(--text3); font-size:12px; white-space:nowrap; }
+  .m-val { text-align:right; font-size:12.5px; line-height:1.5; }
+  .prereq-ok { color:var(--green); font-weight:500; }
+  .prereq-no { color:var(--red); font-weight:600; }
+  .error-msg { font-size:12px; color:var(--red); margin:0 20px 14px; padding:10px 12px; background:var(--red-bg); border-radius:8px; border:1px solid var(--red-b); display:none; line-height:1.5; }
+  .error-msg.show { display:block; }
+  .modal-footer { display:flex; gap:8px; padding:14px 20px; border-top:1px solid var(--border); background:var(--surface2); }
+  .modal-footer button { flex:1; padding:9px; font-size:13px; font-weight:500; font-family:inherit; border-radius:8px; border:1.5px solid var(--border); cursor:pointer; background:var(--surface); color:var(--text); }
+  .modal-footer button:hover { background:var(--surface2); }
+  .modal-footer .btn-approve { background:var(--text); color:var(--bg); border-color:transparent; }
+  .modal-footer .btn-approve:hover { opacity:.85; background:var(--text); }
+
+  @media (max-width:600px) { header { padding:14px 16px; } main { padding:14px 12px; } .header-title { font-size:16px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="header-title">FEN UChile — Malla Curricular</div>
+    <div class="header-sub">Malla interactiva · Plan 2026</div>
+  </div>
+  <div class="header-right">
+    <div class="tab-row">
+      <button class="tab active" data-m="comun" onclick="setMencion('comun')">Ciclo Básico</button>
+      <button class="tab" data-m="econ" onclick="setMencion('econ')">Cs. Económicas</button>
+      <button class="tab" data-m="adm" onclick="setMencion('adm')">Adm. de Empresas</button>
+      <button class="tab" data-m="iicg" onclick="setMencion('iicg')">Info IICG<span class="soon">pronto</span></button>
+      <button class="tab" data-m="audi" onclick="setMencion('audi')">C. Auditor<span class="soon">pronto</span></button>
+    </div>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☾ Oscuro</button>
+  </div>
+</header>
+
+<main>
+  <div id="malla-view">
+    <div class="stats-bar">
+      <div class="stat"><div class="stat-n" id="s-aprobados">0</div><div class="stat-l">Aprobados</div></div>
+      <div class="stat"><div class="stat-n" id="s-creditos">0</div><div class="stat-l">Créditos</div></div>
+      <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">Total ramos</div></div>
+      <div class="stat"><div class="stat-n" id="s-disponibles">0</div><div class="stat-l">Disponibles</div></div>
+    </div>
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:var(--c-econ-bg);border:1px solid var(--c-econ-b)"></div>Economía</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--c-adm-bg);border:1px solid var(--c-adm-b)"></div>Adm./Gestión</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--c-quant-bg);border:1px solid var(--c-quant-b)"></div>Cuantitativo</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--c-lang-bg);border:1px solid var(--c-lang-b)"></div>Idioma/Comuni.</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--c-elec-bg);border:1px solid var(--c-elec-b)"></div>Electivo/Libre</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--c-ti-bg);border:1px solid var(--c-ti-b)"></div>TI/Datos</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--c-social-bg);border:1px solid var(--c-social-b)"></div>Social/Profesional</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--surface2);border:1px solid var(--border2)"></div>Bloqueado 🔒</div>
+    </div>
+    <p class="hint">💡 Los ramos en gris están bloqueados por prerrequisitos. Haz clic en cualquier ramo para ver detalles.</p>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div id="soon-view" class="soon-box" style="display:none">
+    <div class="big">Próximamente</div>
+    <p id="soon-text"></p>
+  </div>
+</main>
+
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header"><h3 id="m-name"></h3><div class="modal-sem" id="m-sem"></div></div>
+    <div class="modal-body" id="m-body"></div>
+    <div class="error-msg" id="error-msg"></div>
+    <div class="modal-footer">
+      <button onclick="closeModal()">Cerrar</button>
+      <button id="btn-approve" class="btn-approve" onclick="toggleApprove()">Marcar aprobado</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const C = (id, sem, name, cred, color, prereq, nota) => ({ id, sem, name, cred, color, prereq: prereq || [], nota });
+
+/* ===================== CICLO BÁSICO ===================== */
+const COMUN = [
+  // 1° semestre — todos sin requisitos
+  C('s1', 1,'Introducción a la Economía',6,'econ'),
+  C('s2', 1,'Gestión y Empresa',6,'adm'),
+  C('s3', 1,'Programación para Analítica de Datos',6,'ti',[], '(3) Se inscribe con la mitad de la cohorte en el primer semestre.'),
+  C('s4', 1,'Tecnología y Sistemas de Información',6,'ti',[], '(3) Se inscribe con la mitad de la cohorte en el primer semestre.'),
+  C('s5', 1,'Métodos Matemáticos I',6,'quant'),
+  C('s6', 1,'Comunicación',2,'lang',[], '(3) Se inscribe con la mitad de la cohorte en el primer semestre.'),
+  // 2° semestre
+  C('s7', 2,'Introducción a la Microeconomía',6,'econ',['s1']),
+  C('s8', 2,'Gestión de Personas',6,'adm',['s2']),
+  C('s9', 2,'Contabilidad',6,'adm',['s2']),
+  C('s10',2,'Métodos Matemáticos II',6,'quant',['s5']),
+  C('s11',2,'Inglés I',2,'lang'),
+  // 3° semestre
+  C('s12',3,'Introducción a la Macroeconomía',6,'econ',['s1','s10']),
+  C('s13',3,'Marketing',6,'adm',['s2']),
+  C('s14',3,'Estadística I',6,'quant',['s5','s3']),
+  C('s15',3,'Métodos Matemáticos III',6,'quant',['s10','s2']),
+  C('s16',3,'Inglés II',2,'lang',['s11']),
+  C('s17',3,'Introducción al Pensamiento Económico y Político',4,'social',['s1']),
+  // 4° semestre
+  C('s18',4,'Economía Aplicada',6,'econ',['s7','s12']),
+  C('s19',4,'Finanzas',6,'adm',['s9','s10','s14']),
+  C('s20',4,'Razonamiento Basado en Datos',6,'ti',['s3','s4','s14']),
+  C('s21',4,'Estadística II',6,'quant',['s14','s10']),
+  C('s22',4,'Métodos Matemáticos IV',6,'quant',['s15']),
+  C('s23',4,'Inglés III',2,'lang',['s16']),
+];
+
+/* ===================== CS. ECONÓMICAS ===================== */
+const ECON = [
+  // 5°
+  C('e1', 5,'Métodos Cuantitativos I',6,'quant',['s20','s21','s22']),
+  C('e2', 5,'Macroeconomía I',6,'econ',['s12']),
+  C('e3', 5,'Microeconomía I',6,'econ',['s7','s18']),
+  C('e4', 5,'Historia Económica',6,'econ',['s7','s12']),
+  C('e5', 5,'Inglés IV',4,'lang',['s23']),
+  C('e6', 5,'Comunicación I',2,'lang',['s6']),
+  // 6°
+  C('e7', 6,'Electivo de Negocios para la Economía (*)',6,'elec',[], '(*) Requisito: 120 créditos aprobados previamente.'),
+  C('e8', 6,'Métodos Cuantitativos II',6,'quant',['e1']),
+  C('e9', 6,'Macroeconomía II',6,'econ',['e2']),
+  C('e10',6,'Microeconomía II',6,'econ',['e3']),
+  C('e11',6,'Taller de Política Pública',2,'social',['s18','e6']),
+  C('e12',6,'Electivo Entorno Social I',2,'elec'),
+  C('e13',6,'Libre I',2,'elec'),
+  // 7°
+  C('e14',7,'Taller Práctico Profesional/Social I (*)',6,'social',[], '(*) Requisito: 120 créditos aprobados previamente.'),
+  C('e15',7,'Taller Práctico Profesional/Social II (*)',6,'social',[], '(*) Requisito: 120 créditos aprobados previamente.'),
+  C('e16',7,'Macroeconomía III',6,'econ',['e9']),
+  C('e17',7,'Microeconomía III',6,'econ',['e10']),
+  C('e18',7,'Electivo Entorno Social II',2,'elec'),
+  C('e19',7,'Libre II',2,'elec'),
+  // 8°
+  C('e20',8,'Electivo Profundización I (*)',6,'elec',[], '(*) Requisito: 120 créditos aprobados previamente.'),
+  C('e21',8,'Electivo Profundización II (*)',6,'elec',[], '(*) Requisito: 120 créditos aprobados previamente.'),
+  C('e22',8,'Electivo Profundización III (*)',6,'elec',[], '(*) Requisito: 120 créditos aprobados previamente.'),
+  C('e23',8,'Macroeconomía IV',6,'econ',['e9','e1','e11']),
+  C('e24',8,'Microeconomía IV',6,'econ',['e10','e1','e11']),
+  C('e25',8,'Libre III',2,'elec'),
+];
+
+/* ===================== ADM. DE EMPRESAS ===================== */
+const ADM = [
+  // 5°
+  C('a1', 5,'Gestión de Personas I',6,'adm',['s8']),
+  C('a2', 5,'Métodos Cuantitativos I',6,'quant',['s21','s22','s20','s4']),
+  C('a3', 5,'Contabilidad Empresarial I',6,'adm',['s9']),
+  C('a4', 5,'Economía para los Negocios',6,'econ',['s19','s18']),
+  C('a5', 5,'Inglés IV',4,'lang',['s23']),
+  C('a6', 5,'Comunicación I',2,'lang',['s6']),
+  // 6°
+  C('a7', 6,'Marketing I',6,'adm',['s13','a2']),
+  C('a8', 6,'Taller de Negocios',2,'adm',['s9','s8','s4']),
+  C('a9', 6,'Negocios I',6,'adm',['s13','s19','a5']),
+  C('a10',6,'Finanzas I',6,'adm',['s19','a3']),
+  C('a11',6,'Contabilidad Empresarial II',6,'adm',['a3']),
+  C('a12',6,'Electivo Entorno Social I',2,'elec'),
+  C('a13',6,'Libre I',2,'elec'),
+  // 7°
+  C('a14',7,'Taller Práctico Profesional/Social I (*)',6,'social',[], '(*) Requisito: 120 créditos aprobados previamente.'),
+  C('a15',7,'Taller Práctico Profesional/Social II (*)',6,'social',[], '(*) Requisito: 120 créditos aprobados previamente.'),
+  C('a16',7,'Negocios II',6,'adm',['s19','s13']),
+  C('a17',7,'Electivo Profundización I (*)',6,'elec',[], '(*) Requisito: 120 créditos aprobados previamente.'),
+  C('a18',7,'Electivo Entorno Social II',2,'elec'),
+  C('a19',7,'Libre II',2,'elec'),
+  // 8°
+  C('a20',8,'Gestión de Personas II (**)',6,'adm',['a1'], '(**) Requisito: Taller Práctico/Social I y II aprobados.'),
+  C('a21',8,'Marketing II (**)',6,'adm',['a7'], '(**) Requisito: Taller Práctico/Social I y II aprobados.'),
+  C('a22',8,'Negocios III (**)',6,'adm',['a8','a1','a9','a16','a4','a10'], '(**) Requisito: Taller Práctico/Social I y II aprobados.'),
+  C('a23',8,'Finanzas II (**)',6,'adm',['a10','a11'], '(**) Requisito: Taller Práctico/Social I y II aprobados.'),
+  C('a24',8,'Electivo Profundización II (*)',6,'elec',[], '(*) Requisito: 120 créditos aprobados previamente.'),
+  C('a25',8,'Libre III',2,'elec'),
+];
+
+const COLOR_MAP = ['econ','adm','quant','lang','elec','ti','social'].reduce((o,k)=>{
+  o[k] = { bg:`var(--c-${k}-bg)`, b:`var(--c-${k}-b)`, t:`var(--c-${k}-t)` }; return o;
+}, {});
+const AREA_LABEL = { econ:'Economía', adm:'Administración', quant:'Cuantitativo', lang:'Idioma / Comunicación', elec:'Electivo / Libre', ti:'TI / Datos', social:'Social / Profesional' };
+const SOON_TEXT = {
+  iicg: 'La malla de Ingeniería en Información y Control de Gestión (IICG) estará disponible muy pronto.',
+  audi: 'La malla de Contador Auditor estará disponible muy pronto.'
+};
+
+let mencion = 'comun';
+let approved = [];
+let selectedId = null;
+const STORE = 'malla_fen_v2';
+
+function allCourses() { return [...COMUN, ...ECON, ...ADM]; }
+function getCourses() {
+  if (mencion === 'comun') return COMUN;
+  if (mencion === 'econ') return [...COMUN, ...ECON];
+  return [...COMUN, ...ADM];
+}
+function isUnlocked(c) { return c.prereq.every(p => approved.includes(p)); }
+function getMissing(c) {
+  const all = allCourses();
+  return c.prereq.filter(p => !approved.includes(p)).map(p => all.find(x => x.id === p).name);
+}
+
+/* Quita ramos aprobados cuyos requisitos ya no se cumplen (consistencia) */
+function cleanApproved() {
+  const all = allCourses();
+  let changed = true;
+  while (changed) {
+    changed = false;
+    approved = approved.filter(id => {
+      const c = all.find(x => x.id === id);
+      const ok = c && c.prereq.every(p => approved.includes(p));
+      if (!ok) changed = true;
+      return ok;
+    });
+  }
+}
+
+function save() { try { localStorage.setItem(STORE, JSON.stringify(approved)); } catch(e) {} }
+function load() { try { approved = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch(e) { approved = []; } cleanApproved(); }
+
+/* ---------- Tema ---------- */
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('theme-btn').textContent = t === 'dark' ? '☀ Claro' : '☾ Oscuro';
+}
+function toggleTheme() {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(t);
+  try { localStorage.setItem('malla_fen_theme', t); } catch(e) {}
+}
+function initTheme() {
+  let t = null;
+  try { t = localStorage.getItem('malla_fen_theme'); } catch(e) {}
+  if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  applyTheme(t);
+}
+
+/* ---------- Pestañas ---------- */
+function setMencion(m) {
+  mencion = m;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.m === m));
+  const soon = (m === 'iicg' || m === 'audi');
+  document.getElementById('malla-view').style.display = soon ? 'none' : 'block';
+  document.getElementById('soon-view').style.display = soon ? 'block' : 'none';
+  if (soon) document.getElementById('soon-text').textContent = SOON_TEXT[m];
+  else render();
+}
+
+function semLabel(s) { return s <= 4 ? `${s}° Sem · Ciclo Básico` : `${s}° Sem · Ciclo Disciplinar`; }
+
+function render() {
+  const courses = getCourses();
+  const sems = [...new Set(courses.map(c => c.sem))].sort((a,b) => a-b);
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  sems.forEach(s => {
+    const col = document.createElement('div');
+    col.className = 'sem-col';
+    col.innerHTML = `<div class="sem-head">${semLabel(s)}</div>`;
+    courses.filter(c => c.sem === s).forEach(c => {
+      const unlocked = isUnlocked(c), isApp = approved.includes(c.id), cl = COLOR_MAP[c.color];
+      const el = document.createElement('div');
+      el.className = 'course' + (isApp ? ' approved' : '') + (!unlocked ? ' locked' : '');
+      if (unlocked) { el.style.background = cl.bg; el.style.borderColor = cl.b; }
+      const col_t = unlocked ? cl.t : '';
+      el.innerHTML = `<div class="cname" style="color:${col_t}">${c.name}</div><div class="ccred" style="color:${col_t}">${c.cred} cr.</div>` +
+        (isApp ? '<div class="badge">✓</div>' : '') + (!unlocked ? '<div class="lock-icon">🔒</div>' : '');
+      el.addEventListener('click', () => openModal(c.id));
+      col.appendChild(el);
+    });
+    grid.appendChild(col);
+  });
+  updateStats();
+}
+
+function updateStats() {
+  const courses = getCourses();
+  const appList = courses.filter(c => approved.includes(c.id));
+  document.getElementById('s-aprobados').textContent = appList.length;
+  document.getElementById('s-creditos').textContent = appList.reduce((a,c) => a + c.cred, 0);
+  document.getElementById('s-total').textContent = courses.length;
+  document.getElementById('s-disponibles').textContent = courses.filter(c => isUnlocked(c) && !approved.includes(c.id)).length;
+}
+
+function openModal(id) {
+  const all = allCourses(), c = all.find(x => x.id === id);
+  selectedId = id;
+  document.getElementById('m-name').textContent = c.name;
+  document.getElementById('m-sem').textContent = `Semestre ${c.sem}  ·  ${c.cred} créditos`;
+  document.getElementById('error-msg').classList.remove('show');
+  const rows = c.prereq.map(pid => {
+    const p = all.find(x => x.id === pid), ok = approved.includes(pid);
+    return `<span class="${ok ? 'prereq-ok' : 'prereq-no'}">${p.name} ${ok ? '✓' : '✗'}</span>`;
+  });
+  let html = `<div class="m-row"><span class="m-label">Área</span><span class="m-val">${AREA_LABEL[c.color]}</span></div>
+    <div class="m-row"><span class="m-label">Prerrequisitos</span><span class="m-val">${rows.length ? rows.join('<br>') : '— Ninguno'}</span></div>`;
+  if (c.nota) html += `<div class="m-row"><span class="m-label">Nota</span><span class="m-val">${c.nota}</span></div>`;
+  document.getElementById('m-body').innerHTML = html;
+  document.getElementById('btn-approve').textContent = approved.includes(id) ? 'Quitar aprobado' : 'Marcar aprobado';
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-bg').classList.remove('open'); selectedId = null; }
+
+function toggleApprove() {
+  if (!selectedId) return;
+  const c = allCourses().find(x => x.id === selectedId);
+  if (!approved.includes(selectedId)) {
+    const missing = getMissing(c);
+    if (missing.length) {
+      const err = document.getElementById('error-msg');
+      err.innerHTML = `<strong>Error: no has aprobado el/los ramo/s requisito.</strong><br>Te falta aprobar: ${missing.map(n => `<em>${n}</em>`).join(', ')}.`;
+      err.classList.add('show');
+      return;
+    }
+    approved.push(selectedId);
+  } else {
+    approved.splice(approved.indexOf(selectedId), 1);
+    cleanApproved(); // si se quita un ramo, se quitan los que dependían de él
+  }
+  save(); render(); openModal(selectedId);
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+initTheme();
+load();
+render();
+</script>
+</body>
+</html>
